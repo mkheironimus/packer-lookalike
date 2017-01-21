@@ -1,0 +1,79 @@
+{
+  "description": "Vagrant box with (about) the same packages as Linode CentOS 7 image",
+  "builders" : [
+    {
+      "boot_command" : [
+        "<tab> text rd.live.check=0 ks=http://{{.HTTPIP}}:{{.HTTPPort}}/centos-7.ks<enter><wait>"
+      ],
+      "disk_size" : 8192,
+      "export_opts" : [ "--manifest" ],
+      "guest_additions_path" : "VBoxGuestAdditions_{{.Version}}.iso",
+      "guest_os_type" : "RedHat_64",
+      "hard_drive_interface" : "sata",
+      "headless" : "{{user `headless`}}",
+      "http_directory" : "http",
+      "iso_checksum" : "{{user `iso_checksum`}}",
+      "iso_checksum_type" : "sha512",
+      "iso_url" : "{{user `iso_file`}}",
+      "name" : "c7-linode-virtualbox",
+      "output_directory" : "{{user `output`}}/{{build_name}}-{{user `stamp`}}",
+      "shutdown_command" : "echo 'vagrant' | sudo -S /sbin/halt -h -p",
+      "ssh_password" : "vagrant",
+      "ssh_username" : "vagrant",
+      "ssh_wait_timeout" : "10000s",
+      "type" : "virtualbox-iso",
+      "vboxmanage" : [
+        [ "modifyvm", "{{.Name}}", "--memory", "1280" ],
+        [ "modifyvm", "{{.Name}}", "--cpus", "1" ],
+        [ "modifyvm", "{{.Name}}", "--vram", "12" ]
+      ],
+      "vm_name" : "c7-linode-{{user `stamp`}}"
+    }
+  ],
+  "provisioners" : [
+    {
+      "environment_vars" : [
+        "HOME_DIR=/home/vagrant",
+        "http_proxy={{user `http_proxy`}}",
+        "https_proxy={{user `https_proxy`}}",
+        "no_proxy={{user `no_proxy`}}",
+        "VERBOSE={{user `verbose`}}"
+      ],
+      "execute_command" : "env {{.Vars}} sudo -S -E bash -eu '{{.Path}}'",
+      "scripts" : [
+        "shell/yum.sh",
+        "shell/grub.sh",
+        "shell/patch.sh",
+        "shell/vmtools.sh",
+        "shell/vm_linode_cleanup.sh",
+        "shell/vagrant.sh",
+        "shell/cleanup.sh",
+        "shell/whiteout.sh"
+      ],
+      "type" : "shell"
+    }
+  ],
+  "post-processors" : [
+    {
+      "compression_level" : 9,
+      "keep_input_artifact" : true,
+      "output" : "{{user `output`}}/{{.BuildName}}-{{user `stamp`}}.box",
+      "type" : "vagrant"
+    },
+    {
+      "inline": ["./c7_box_json.sh {{user `output`}}"],
+      "type": "shell-local"
+    }
+  ],
+  "variables" : {
+    "headless" : "true",
+    "http_proxy" : "{{env `http_proxy`}}",
+    "https_proxy" : "{{env `https_proxy`}}",
+    "iso_checksum" : "cef1b17bf79b0b3c26bcc8eaf19b75eead0b44f6f90f2dcc47d230ef27d6d9799729a57716abfad44a01d55512c93678526173e20375973b67bb89b1c03dea21",
+    "iso_file" : "iso/CentOS-7-x86_64-DVD-1611.iso",
+    "no_proxy" : "{{env `no_proxy`}}",
+    "output": "builds",
+    "stamp" : "{{isotime \"20060102\"}}",
+    "verbose" : "true"
+  }
+}
