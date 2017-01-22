@@ -16,7 +16,7 @@ for BOX in "${DIR}"/*.box ; do
     if [ -f "${BOX}" -a ! -f "${BOX}.json" ] ; then
         cat >"${BOX}.json" <<EOF
 {
-  "name": "mkheironimus/$(basename "${BOX}" .box | sed -e 's/-virtualbox//')",
+  "name": "mkheironimus/$(basename "${BOX}" .box | sed -e 's/-virtualbox-[0-9]\{8\}//')",
   "description": "CentOS Linode-lookalike",
   "versions": [{
     "version": "${STAMP}",
